@@ -1,7 +1,6 @@
 from fastapi import APIRouter
-from sqlalchemy.orm import Session
-from ..database import SessionLocal
-from .. import crud, schemas
+from ..services import users_service
+from .. import schemas
 from ..auth import oauth2_scheme, verify_token
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -14,10 +13,8 @@ def create(user: schemas.UserCreate, token: str = Depends(oauth2_scheme)):
         headers={"WWW-Authenticate": "Bearer"},
     )
     token_data = verify_token(token, credentials_exception)
-    db: Session = SessionLocal()
-    return crud.create_user(db, user)
+    return users_service.create_user(user)
 
 @router.get("/")
 def list_users():
-    db: Session = SessionLocal()
-    return crud.get_users(db)
+    return users_service.get_users()
