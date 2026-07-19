@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session
-from ..database import SessionLocal
-from .. import crud, schemas
+from ..services import tasks_service
+from .. import schemas
 from ..auth import oauth2_scheme, verify_token
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
@@ -14,13 +13,11 @@ def create(task: schemas.TaskCreate, token: str = Depends(oauth2_scheme)):
         headers={"WWW-Authenticate": "Bearer"},
     )
     token_data = verify_token(token, credentials_exception)
-    db: Session = SessionLocal()
-    return crud.create_task(db, task)
+    return tasks_service.create_task(task)
 
 @router.get("/")
 def list_tasks():
-    db: Session = SessionLocal()
-    return crud.get_tasks(db)
+    return tasks_service.get_tasks()
 
 @router.put("/{task_id}")
 def update(task_id: int, task: schemas.TaskUpdate, token: str = Depends(oauth2_scheme)):
@@ -30,8 +27,7 @@ def update(task_id: int, task: schemas.TaskUpdate, token: str = Depends(oauth2_s
         headers={"WWW-Authenticate": "Bearer"},
     )
     token_data = verify_token(token, credentials_exception)
-    db: Session = SessionLocal()
-    updated = crud.update_task(db, task_id, task)
+    updated = tasks_service.update_task(task_id, task)
     if not updated:
         raise HTTPException(404, "Task not found")
     return updated
@@ -44,8 +40,7 @@ def delete(task_id: int, token: str = Depends(oauth2_scheme)):
         headers={"WWW-Authenticate": "Bearer"},
     )
     token_data = verify_token(token, credentials_exception)
-    db: Session = SessionLocal()
-    deleted = crud.delete_task(db, task_id)
+    deleted = tasks_service.delete_task(task_id)
     if not deleted:
         raise HTTPException(404, "Task not found")
     return {"message": "Deleted"}
