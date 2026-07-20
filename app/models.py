@@ -1,8 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
-
 from .database import Base
-
+from datetime import datetime
 
 class User(Base):
     __tablename__ = "users"
@@ -13,7 +12,6 @@ class User(Base):
 
     tasks = relationship("Task", back_populates="user")
 
-
 class Task(Base):
     __tablename__ = "tasks"
 
@@ -21,6 +19,7 @@ class Task(Base):
     title = Column(String)
     description = Column(String)
     status = Column(String, default="Pending")
+    due_date = Column(DateTime)
 
     assigned_user_id = Column(Integer, ForeignKey("users.id"))
 
