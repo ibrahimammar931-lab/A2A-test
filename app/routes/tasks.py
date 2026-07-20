@@ -2,15 +2,14 @@ from fastapi import APIRouter, HTTPException, Depends
 from ..services import tasks_service
 from .. import schemas
 from ..auth import oauth2_scheme, verify_token
-
-router = APIRouter(prefix="/tasks", tags=["Tasks"])
+outer = APIRouter(prefix="/tasks", tags=["Tasks"])
 
 @router.post("/")
 def create(task: schemas.TaskCreate, token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
+        headers={{"WWW-Authenticate": "Bearer"}},
     )
     token_data = verify_token(token, credentials_exception)
     return tasks_service.create_task(task)
@@ -24,7 +23,7 @@ def update(task_id: int, task: schemas.TaskUpdate, token: str = Depends(oauth2_s
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
+        headers={{"WWW-Authenticate": "Bearer"}},
     )
     token_data = verify_token(token, credentials_exception)
     updated = tasks_service.update_task(task_id, task)
@@ -37,10 +36,14 @@ def delete(task_id: int, token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
+        headers={{"WWW-Authenticate": "Bearer"}},
     )
     token_data = verify_token(token, credentials_exception)
     deleted = tasks_service.delete_task(task_id)
     if not deleted:
         raise HTTPException(404, "Task not found")
-    return {"message": "Deleted"}
+    return {{"message": "Deleted"}}
+
+@router.get("/overdue")
+def get_overdue():
+    return tasks_service.get_overdue_tasks()
